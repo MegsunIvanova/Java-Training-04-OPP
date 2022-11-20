@@ -1,4 +1,4 @@
-package theme_08_ExceptionsAndErrorHandling.Lab;
+package theme_08_ExceptionsAndErrorHandling;
 
 import java.util.Arrays;
 import java.util.Optional;
