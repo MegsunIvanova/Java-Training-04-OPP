@@ -1,4 +1,4 @@
-package rpg_lab;
+package theme_10_UnitTesting.Lab.src.main.java.rpg_lab;
 
 public interface Weapon {
 
