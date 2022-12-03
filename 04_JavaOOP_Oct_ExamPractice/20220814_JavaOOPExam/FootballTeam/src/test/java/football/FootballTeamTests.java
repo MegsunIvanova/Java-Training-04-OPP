@@ -1,11 +1,8 @@
 package football;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.print.attribute.standard.MediaSize;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,125 +11,95 @@ import static org.junit.Assert.assertFalse;
 
 public class FootballTeamTests {
 
-    private static final String NAME = "TestName";
-    private static final int VALID_VACANT_POSITIONS = 6;
-    private static final String STATISTICS_MESSAGE = "The footballer %s is in the team %s.";
+    private static final String PLAYER_NAME = "Pesho";
+    private static final String TEAM_NAME = "Pesho's Team";
+    private static final int VALID_VACANT_POSITIONS = 12;
 
-    private List<Footballer> footballersList;
+    private Footballer footballer;
+
     private FootballTeam footballTeam;
+    //
+    private static final String STATISTICS_MESSAGE = "The footballer %s is in the team %s.";
+    //
 
     @Before
     public void setUp() {
-        footballersList = new ArrayList<>();
-        footballTeam = new FootballTeam(NAME, VALID_VACANT_POSITIONS);
+        this.footballer = new Footballer(PLAYER_NAME);
+        footballTeam = new FootballTeam(TEAM_NAME, VALID_VACANT_POSITIONS);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testConstructorThrowsWithNegativeVacantPositions() {
-        footballTeam = new FootballTeam(NAME, VALID_VACANT_POSITIONS * (-1));
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testConstructorThrowsWithNullName() {
-        footballTeam = new FootballTeam(null, VALID_VACANT_POSITIONS);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testConstructorThrowsWithEmptyName() {
-        FootballTeam footballTeam = new FootballTeam(" ", VALID_VACANT_POSITIONS);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testAddFootballerMoreThenVacantPositionsThrows() {
-        addPlayersToFootballTeam();
+    public void testCreatingTeamWithNoPositions() {
+        new FootballTeam("test_name", -1);
         footballTeam.addFootballer(new Footballer("NAME"));
     }
 
     @Test
-    public void testAddFootballerAdd() {
-        List<Footballer> expected = addPlayersToFootballTeam();
+    public void testCreatingTeamWithActualPositionsShouldSetCorrectPositionsCount() {
+        int vacantPositions = footballTeam.getVacantPositions();
+        assertEquals(VALID_VACANT_POSITIONS, vacantPositions);
+    }
 
-        int actualSize = footballTeam.getCount();
-        assertEquals(expected.size(), actualSize);
+    @Test(expected = NullPointerException.class)
+    public void testCreatingTeamWithShouldFail() {
+        footballTeam = new FootballTeam(null, VALID_VACANT_POSITIONS);
+    }
 
+    @Test(expected = NullPointerException.class)
+    public void testCreatingTeamWithEmptyNameShouldFail() {
+        FootballTeam footballTeam = new FootballTeam(" ", VALID_VACANT_POSITIONS);
     }
 
     @Test
-    public void testRemoveFootballerShouldRemove() {
-        List<Footballer> footballersList = addPlayersToFootballTeam();
+    public void testCreatingTeamWithNameShouldCreateTheTeam() {
+        assertEquals(TEAM_NAME, footballTeam.getName());
+    }
 
-        String footballerName = footballersList.get(1).getName();
+    @Test
+    public void testAddPlayerShouldIncreaseTeamMembers() {
+        footballTeam.addFootballer(footballer);
+        assertEquals(1, footballTeam.getCount());
+    }
 
-        footballTeam.removeFootballer(footballerName);
+    @Test(expected = IllegalArgumentException.class)
+    public void testAddPlayerShouldFailWhenTeamIsFull() {
+        FootballTeam footballTeam = new FootballTeam(TEAM_NAME, 0);
+        footballTeam.addFootballer(footballer);
+    }
 
-        int expectedSize = footballersList.size() - 1;
-        int actualSize = footballTeam.getCount();
-        assertEquals(expectedSize, actualSize);
+    @Test
+    public void testRemoveFootballerShouldReduceTeamCount() {
+        this.footballTeam.addFootballer(footballer);
+
+        assertEquals(1, footballTeam.getCount());
+
+        this.footballTeam.removeFootballer(footballer.getName());
+
+        assertEquals(0, footballTeam.getCount());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testRemoveFootballerShouldFailWhenNoSuchPlayer() {
+        this.footballTeam.addFootballer(footballer);
+        this.footballTeam.removeFootballer("Not_Added");
+    }
+
+    @Test
+    public void testFootballerForSaleShouldDeactivatePlayer() {
+        this.footballTeam.addFootballer(footballer);
+
+        footballTeam.footballerForSale(footballer.getName());
+
+        assertFalse(footballer.isActive());
 
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testRemoveFootballerShouldThrowIfFootballerMissing() {
-        List<Footballer> footballersList = addPlayersToFootballTeam();
-        String footballerName = footballersList.get(1).getName();
-        footballTeam.removeFootballer(footballerName);
-        footballTeam.removeFootballer(footballerName);
-    }
+    public void testFootballerForSaleShouldFailIfPlayerIsMissing() {
+        this.footballTeam.addFootballer(footballer);
 
-    @Test
-    public void testFootballerForSaleShouldReturnCorrectFootballer() {
-        List<Footballer> footballerList = addPlayersToFootballTeam();
-        Footballer expected = footballerList.get(footballerList.size() - 1);
-
-        Footballer actual = footballTeam.footballerForSale(expected.getName());
-
-        assertEquals(expected.getName(), actual.getName());
-        assertFalse(actual.isActive());
+        footballTeam.footballerForSale("Not_Added");
 
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testFootballerForSaleShouldThrowIfNoneMatchingNameOfFootballer() {
-        List<Footballer> footballerList = addPlayersToFootballTeam();
-        footballTeam.footballerForSale(NAME);
-    }
-
-    @Test
-    public void testGetStatisticsShouldReturnCorrectText () {
-        List<Footballer> footballerList = addPlayersToFootballTeam();
-        String namesOfFootballers = footballerList.stream()
-                .map(Footballer::getName)
-                .collect(Collectors.joining(", "));
-        String expected = String.format(STATISTICS_MESSAGE, namesOfFootballers, NAME);
-        String actual = footballTeam.getStatistics();
-        assertEquals(expected, actual);
-    }
-
-    @Test
-    public void testGetNameShouldReturnACorrectName () {
-        assertEquals(NAME, footballTeam.getName());
-    }
-
-    @Test
-    public void testGetVacantPositionsShouldReturnACorrectVacantPositions () {
-        assertEquals(VALID_VACANT_POSITIONS, footballTeam.getVacantPositions());
-    }
-
-    private List<Footballer> addPlayersToFootballTeam() {
-
-        footballersList.add(new Footballer("Test_Name_01"));
-        footballersList.add(new Footballer("Test_Name_02"));
-        footballersList.add(new Footballer("Test_Name_03"));
-        footballersList.add(new Footballer("Test_Name_04"));
-        footballersList.add(new Footballer("Test_Name_05"));
-        footballersList.add(new Footballer("Test_Name_06"));
-        footballersList.add(new Footballer("Test_Name_07"));
-        footballersList.add(new Footballer("Test_Name_08"));
-
-        for (int i = 0; i < VALID_VACANT_POSITIONS; i++) {
-            footballTeam.addFootballer(footballersList.get(i));
-        }
-
-        return footballersList.subList(0, VALID_VACANT_POSITIONS);
-    }
 }
