@@ -4,7 +4,6 @@ import catHouse.entities.toys.Toy;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 public class ToyRepository implements Repository {
 
